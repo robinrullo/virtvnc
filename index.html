@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Virtual Machines</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    h1 {
+      width: 100%;
+      text-align: center;
+      color: #333;
+    }
+    .card {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin: 10px;
+      padding: 20px;
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card h2 {
+      font-size: 20px;
+      margin: 0 0 10px 0;
+    }
+    .card p {
+      margin: 5px 0;
+      color: #555;
+    }
+    .button {
+      background-color: white;
+      border: 2px solid black;
+      color: black;
+      padding: 10px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 16px;
+      transition-duration: 0.4s;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: black;
+      color: white;
+    }
+    button[disabled] {
+      opacity: .25;
+      cursor: not-allowed;
+    }
+    button[disabled]:hover {
+      color: black;
+      background: white;
+    }
+  </style>
+  <!-- ES2015/ES6 modules polyfill -->
+  <script nomodule src="vendor/browser-es-module-loader/dist/browser-es-module-loader.js"></script>
+  <script type="module" crossorigin="anonymous">
+    import * as WebUtil from "./app/webutil.js";
+    const apiPrefix = 'k8s/apis';
+
+    const novncParams = (namespace, vm) => ({
+      autoconnect: true,
+      reconnect: true,
+      reconnect_delay: 5000,
+      resize: 'remote',
+      path: `${apiPrefix}/subresources.kubevirt.io/v1alpha3/namespaces/${namespace}/virtualmachineinstances/${vm.metadata.name}/vnc`,
+    })
+
+    function loadVMI(namespace) {
+      fetch('/' + apiPrefix + '/kubevirt.io/v1alpha3/namespaces/' + namespace + '/virtualmachineinstances/')
+        .then(resp => resp.json())
+        .then((resp) => {
+          if (resp.items.length === 0) {
+            document.body.append("No virtual machines in the namespace.");
+            return;
+          }
+          resp.items.forEach(i => {
+            let card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <h2>${i.metadata.name}</h2>
+              <p><strong>State:</strong> ${i.status.phase}</p>
+              <p><strong>IP Address:</strong> ${i.status.interfaces !== undefined ? i.status.interfaces[0].ipAddress : 'N/A'}</p>
+              <p><strong>Node</strong> ${i.status.nodeName !== undefined ? i.status.nodeName : 'N/A'}</p>
+              <button class='button' ${i.status.phase == "Running" ? "" : "disabled"} onclick="window.open('vnc.html?${Object.entries(novncParams(namespace, i)).map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join(`&`)}', 'novnc_window', 'resizable=yes,toolbar=no,location=no,status=no,scrollbars=no,menubar=no,width=1030,height=800')">VNC</button>
+            `;
+            document.body.appendChild(card);
+          });
+        })
+        .catch(err => console.log("Failed to get vmis: " + err));
+    }
+
+    let namespace = WebUtil.getQueryVar('namespace', 'default');
+    loadVMI(namespace);
+  </script>
+</head>
+<body>
+  <h1>Virtual Machines List</h1>
+  <!-- dynamic content -->
+</body>
+</html>
