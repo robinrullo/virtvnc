@@ -2,8 +2,6 @@ FROM alpine:3.20 as sources
 WORKDIR /app
 RUN apk add --no-cache git
 RUN git clone https://github.com/novnc/noVNC.git
-RUN npm install
-RUN npm run prepublish
 
 FROM bitnami/kubectl:1.29
 COPY --from=sources /app/noVNC/app /static/app
