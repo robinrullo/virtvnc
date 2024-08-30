@@ -83,7 +83,7 @@ spec:
           effect: 'NoSchedule'
       containers:
         - name: virtvnc
-          image: ghcr.io/robinrullo/virtvnc:30b5bac-047531e
+          image: ghcr.io/robinrullo/virtvnc:77f339a-047531e
           livenessProbe:
             httpGet:
               port: 8001
