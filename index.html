@@ -77,8 +77,21 @@
       path: `${apiPrefix}/subresources.kubevirt.io/v1alpha3/namespaces/${namespace}/virtualmachineinstances/${vm.metadata.name}/vnc`,
     })
 
+    const windowParams = {
+      resizable: 'yes',
+      toolbar: 'no',
+      location: 'no',
+      status: 'no',
+      scrollbars: 'no',
+      menubar: 'no',
+      width: 1030,
+      height: 800
+    }
+
+    const toKV = (obj) => Object.entries(obj).map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+
     function loadVMI(namespace) {
-      fetch('/' + apiPrefix + '/kubevirt.io/v1alpha3/namespaces/' + namespace + '/virtualmachineinstances/')
+      fetch('virtualmachineinstances.json')
         .then(resp => resp.json())
         .then((resp) => {
           if (resp.items.length === 0) {
@@ -93,7 +106,7 @@
               <p><strong>State:</strong> ${i.status.phase}</p>
               <p><strong>IP Address:</strong> ${i.status.interfaces !== undefined ? i.status.interfaces[0].ipAddress : 'N/A'}</p>
               <p><strong>Node</strong> ${i.status.nodeName !== undefined ? i.status.nodeName : 'N/A'}</p>
-              <button class='button' ${i.status.phase == "Running" ? "" : "disabled"} onclick="window.open('vnc.html?${Object.entries(novncParams(namespace, i)).map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join(`&`)}', 'novnc_window', 'resizable=yes,toolbar=no,location=no,status=no,scrollbars=no,menubar=no,width=1030,height=800')">VNC</button>
+              <button class='button' ${i.status.phase == "Running" ? "" : "disabled"} onclick="window.open('vnc.html?${toKV(novncParams(namespace, i)).join(`&`)}', 'novnc_window', '${toKV(windowParams)}')">VNC</button>
             `;
             document.body.appendChild(card);
           });
