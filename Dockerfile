@@ -4,6 +4,7 @@ RUN apk add --no-cache git
 RUN git clone https://github.com/novnc/noVNC.git
 
 FROM bitnami/kubectl:1.29
+LABEL org.opencontainers.image.source https://github.com/robinrullo/virtvnc
 COPY --from=sources /app/noVNC/app /static/app
 COPY --from=sources /app/noVNC/core /static/core
 COPY --from=sources /app/noVNC/vendor /static/vendor
